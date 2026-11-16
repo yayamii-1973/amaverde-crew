@@ -9,8 +9,7 @@
  setTimeout(function(){try{var vis=function(id){var e=document.getElementById(id);if(!e)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e);return c.display==='none'?'none':(r.width+'x'+r.height+(c.visibility!=='visible'?' '+c.visibility:'')+(+c.opacity<0.05?' op'+c.opacity:''))};
   var any=['empty','mob','lock','st'].some(function(id){var e=document.getElementById(id);if(!e)return false;var r=e.getBoundingClientRect(),c=getComputedStyle(e);return c.display!=='none'&&r.width>50&&r.height>50&&c.visibility==='visible'&&+c.opacity>0.05});
   if(E.length)show('After 7 s: empty='+vis('empty')+' st='+vis('st')+' mob='+vis('mob')+' lock='+vis('lock')+' · data='+(typeof M!=='undefined'&&M.ok?'yes':'no')+' · body='+document.body.className+' · top='+(function(){var e=document.elementFromPoint(innerWidth/2,innerHeight/2),o=[];for(var k=0;e&&k<4;k++,e=e.parentElement)o.push(e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.split(' ').slice(0,2).join('.'):''));return o.join(' < ')})())}catch(e){}},7000)})();
-</script><script id=avglv src="gloves.js"></script>
-<script id=avdata>/* ===== Ship data on this device. The code holds no crew data: Excel files, edits, photos, notes, users and settings
+</script><script id=avdata>/* ===== Ship data on this device. The code holds no crew data: Excel files, edits, photos, notes, users and settings
    live only in this browser (localStorage av_* + IndexedDB). Here: the data version + upgrades of older data, and a full backup. ===== */
 window.AVDATA=(function(){
  var V=1,KEY='av_dv',from=0,newer=false;
@@ -96,7 +95,8 @@ window.AVDATA=(function(){
     T('Loading the backup…',60000);await importPack(p);T('Backup loaded — restarting…',4000);setTimeout(function(){location.reload()},900)}
    catch(err){console.error(err);T(L('Could not read the backup:')+' '+err.message,8000)}};f.click()}
  return{V:V,pub:pub,from:from,get newer(){return newer},ready:ready,exportAll:exportAll,importPick:importPick,importPack:importPack,enc:enc,dec:dec}})();
-</script><script id=avpwa>/* ===== installable web app (PWA): only when the page comes from a web address (GitHub Pages, or localhost for tests).
+</script>
+<script>/* the glove pack (gloves.js, personal use) is loaded only outside the published copy */if(!(window.AVDATA&&AVDATA.pub))document.write('<script id=avglv src="gloves.js"><\/script>')</script><script id=avpwa>/* ===== installable web app (PWA): only when the page comes from a web address (GitHub Pages, or localhost for tests).
    sw.js keeps the app for offline use and checks for a newer index.html; a newer one → the bar "A new version of the app is ready". ===== */
 window.AVPWA=(function(){
  var web=false;try{var h=location.hostname;web=(location.protocol==='https:'||(location.protocol==='http:'&&(h==='localhost'||h==='127.0.0.1')))&&h!=='appassets.androidplatform.net'&&'serviceWorker' in navigator}catch(e){}
