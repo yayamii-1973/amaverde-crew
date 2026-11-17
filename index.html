@@ -5180,7 +5180,7 @@ function wlStore(st,when){try{const H=wlHist(),t0=toSerial(when);Object.keys(st)
 function levelSeries(key){const H=wlHist()[key]||{};return Object.keys(H).sort().map(d=>({d,cm:H[d]}))}
 function setGauges(txt,src){const {st,n}=parseGauges(txt);if(!n)return 0;WL.st=st;WL.when=M.ok?M.days[M.today].d:new Date().toISOString().slice(0,10);WL.src=src;WL.status='ok';WL.t=Date.now();wlStore(st,WL.when);WL.stamp=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});try{localStorage.setItem('av_wl',JSON.stringify(WL))}catch(e){}return n}
 /* browsers block these two sites when the file is opened from disk (CORS); an optional proxy address (Settings) lets the app reach them anyway */
-const PXPUB=['https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy?quest='];
+const PXPUB=['https://amaverde-relay.yayamii.workers.dev/?url=','https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy?quest=']; /* first: own relay (Cloudflare Worker amaverde-relay, only the water-level sites) */
 const pxGet=()=>{try{const v=localStorage.getItem('av_proxy');if(v==='off')return[];if(!v||/corsproxy\.io/.test(v))return PXPUB.slice();return [v.trim()].concat(PXPUB)}catch(e){return PXPUB.slice()}};
 const pxCustom=()=>{try{const v=localStorage.getItem('av_proxy');return v&&v!=='off'&&!/corsproxy\.io/.test(v)?v:''}catch(e){return ''}};
 const AVH={n:0,w:{}};
