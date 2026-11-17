@@ -5633,7 +5633,7 @@ ICON.cert=svg('<path d="M6 3h9l4 4v10.5H6z"/><path d="M15 3v4h4"/><path d="M9 8.
 ICON.cap=svg('<path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/>');
 ICON.edit=svg('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>');
 const PGV=[['cal','Calendar'],['crew','Crew'],['sch','Schedule'],['alerts','Alerts'],['wl','Water levels'],['wmap','Weather map'],['plan','Planning'],['board','Ship board'],['edit','Edit crew & schedule'],['fleet','Fleet'],['cap','Captain (experimental)']];
-try{S.pgOff=JSON.parse(localStorage.getItem('av_pgoff')||'[]')}catch(e){S.pgOff=[]}
+try{S.pgOff=JSON.parse(localStorage.getItem('av_pgoff')||'["cap","board"]')}catch(e){S.pgOff=[]}
 const pgOn=id=>id==='dash'||id==='set'||!(S.pgOff||[]).includes(id);
 function pgToggle(id){const a=S.pgOff||[],k=a.indexOf(id);if(k<0)a.push(id);else a.splice(k,1);S.pgOff=a;try{localStorage.setItem('av_pgoff',JSON.stringify(a))}catch(e){}if(!pgOn(S.view)){S.view='dash'}render()}
 function renderTop(){const r=renderTop0.apply(this,arguments);try{fitTop();requestAnimationFrame(fitTop)}catch(e){}return r}
