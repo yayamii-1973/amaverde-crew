@@ -5351,7 +5351,7 @@ function nearestStation(r){fillRkm();let best=null;wlDan().forEach(s=>{if(s.rkm=
 document.documentElement.dataset.round=(()=>{try{return localStorage.getItem('av_round')||'round'}catch(e){return 'round'}})();
 var PERF=(()=>{try{return localStorage.getItem('av_perf')||'auto'}catch(e){return 'auto'}})(),PERFA=0,PERFN=0;
 function perfApply(){document.body.classList.toggle('lite',PERF==='lite'||(PERF==='auto'&&!!PERFA))}
-function perfProbe(){try{if(PERF!=='auto'||PERFA||document.hidden)return;let n=0;const t0=performance.now();const f=()=>{n++;const t=performance.now()-t0;if(t<2500)requestAnimationFrame(f);else{const fps=n*1000/t;if(!document.hidden&&fps<20&&(++PERFN>=2)){PERFA=1;perfApply();try{toast('Smoother mode switched on — blur is off. You can change this in Settings → Size & sharpness.',6000)}catch(e){}}}};requestAnimationFrame(f)}catch(e){}}
+function perfProbe(){try{if(PERF!=='auto'||PERFA||document.hidden)return;if(S.flip||document.body.classList.contains('fly')){setTimeout(perfProbe,4000);return}let n=0;const t0=performance.now();const f=()=>{n++;const t=performance.now()-t0;if(t<2500)requestAnimationFrame(f);else{const fps=n*1000/t;if(!document.hidden&&!S.flip&&!document.body.classList.contains('fly')&&fps<20&&(++PERFN>=2)){PERFA=1;perfApply();try{toast('Smoother mode switched on — blur is off. You can change this in Settings → Size & sharpness.',6000)}catch(e){}}}};requestAnimationFrame(f)}catch(e){}}
 perfApply();setTimeout(perfProbe,9000);setTimeout(perfProbe,20000);setInterval(perfProbe,45000);
 /* ===== Top bar: shrink step by step instead of cutting buttons off ===== */
 function fitTop(){try{const t=document.getElementById('top');if(!t)return;t.querySelectorAll('.btn,.vp').forEach(b=>{if(!b.title&&b.textContent.trim())b.title=b.textContent.trim()})}catch(e){}}
@@ -7890,12 +7890,15 @@ function flyOff(){document.body.classList.remove('fly');window.FXPAUSE=0;try{FX.
 /* bounce-in: overshoot, settle, then a jelly wobble */
 const BOUNCE=(s0,mv)=>[{transform:`translateY(${mv}px) scale(${s0})`,opacity:0,offset:0},{transform:'translateY(0) scale(1.08)',opacity:1,offset:.42},{transform:'scale(.965)',offset:.62},{transform:'scale(1.022)',offset:.8},{transform:'scale(.995)',offset:.92},{transform:'none',offset:1}];
 function popIn(el,delay,dur,o){o=o||{};if(!el||!el.animate)return;if(!AN.on('jelly')){softPop(el,delay);return}const an=el.animate(BOUNCE(o.s0||.7,o.mv||0),{duration:dur,delay,fill:'backwards',easing:'ease-out'});if(o.jelly)an.onfinish=()=>{try{jelly(el,0,o.jelly)}catch(e){}}}
-function dmReveal(mp){mp.classList.remove('lite');if(!AN.on('mapfx'))return;
- // map layers: soft bounce from their own centre, one after another
- const L=window.DMSTEP||[['.dmrel',0],['.dmvig',0],['#dmbd',800],['#dmtr',800],['#dmhalo',1700],['#dmriv',1700],['#dmdots',2100],['#dmship',2100],['#dmlb',3000],['#dmtk',3000],['#dmwx',3900]];
- L.forEach(([s,d])=>{const e=mp.querySelector(s);if(e&&e.animate){if(e.ownerSVGElement||e.tagName==='g'){e.style.transformBox='fill-box';e.style.transformOrigin='center'}e.animate(BOUNCE(.94,0).map(k=>({...k,transform:k.transform.replace(/translateY\([^)]*\) /,'')})),{duration:900,delay:d,fill:'backwards',easing:'ease-out'})}});
- // controls: pop in with bounce + jelly
- [['#dmhd',4700,.5],['.dmz',4900,.7],['.dmleg',5100,.7],['.dmscale',5300,.5]].forEach(([s,d,j])=>popIn(mp.querySelector(s),d,800,{s0:.6,mv:10,jelly:j}))}
+/* map reveal v2: the drawing fades in once (cheap for the graphics card), the weather after it, then the controls — about 0.7 s in all.
+   The blur is switched back on while the drawing is still invisible, so the change never shows as a flash. */
+function dmReveal(mp){const sv=mp.querySelector('#dm'),wx=mp.querySelector('#dmwx'),ui=['#dmhd','.dmz','.dmleg','.dmscale'].map(q=>mp.querySelector(q)).filter(Boolean);
+ if(!AN.on('mapfx')||!sv||!sv.animate){mp.classList.remove('lite');return}
+ [sv,wx].forEach(e=>{if(e)e.style.opacity=0});ui.forEach(e=>e.style.opacity=0);
+ requestAnimationFrame(()=>{mp.classList.remove('lite');requestAnimationFrame(()=>{
+  sv.style.opacity='';sv.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out'});
+  if(wx){wx.style.opacity='';wx.animate([{opacity:0},{opacity:1}],{duration:380,delay:220,fill:'backwards',easing:'ease-out'})}
+  ui.forEach((e,k)=>{e.style.opacity='';e.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,delay:160+k*60,fill:'backwards',easing:'cubic-bezier(.2,.8,.3,1)'})})})})}
 function flipMap(into,kind){const wk=kind==='w',MP=wk?'wmap':'map';if(S.flip||!M.ok)return;if(!AN.on('pages')){if(S.view===(into?'dash':MP))goView(into?MP:'dash');return}const from=into?'dash':MP,to=into?MP:'dash';if(S.view!==from)return;
  const pf=$('#p-'+from),pfP=pf&&pf.querySelector('.panel');if(!pfP){goView(to);return}S.flip=1;
  const r0=pfP.getBoundingClientRect();hvHide&&hvHide();flyOn();
@@ -7910,8 +7913,8 @@ function flipMap(into,kind){const wk=kind==='w',MP=wk?'wmap':'map';if(S.flip||!M
  if(into){ // 1) the empty panel grows out of the small one  2) it settles (jelly)  3) the map's content arrives step by step
   const mp=pt.querySelector('.panel'),sr=src.getBoundingClientRect();mp.style.transformOrigin='0 0';mp.classList.add('lite');
   pf.style.zIndex=1;pt.style.zIndex=5;pf.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'});
-  const a=mp.animate([{transform:place(mp,sr),opacity:.25},{transform:'none',opacity:1}],{duration:520,easing:'cubic-bezier(.3,1.25,.5,1)'});
-  a.onfinish=a.oncancel=()=>{pf.getAnimations().forEach(x=>x.cancel());pf.classList.remove('on');pf.style.zIndex='';pt.style.zIndex='';mp.style.transformOrigin='';jelly(mp,0,1.5);setTimeout(()=>{if(!wk)dmReveal(mp);setTimeout(()=>flyOff(),wk?600:3800);setTimeout(()=>{S.flip=0},900)},420)};
+  const a=mp.animate([{transform:place(mp,sr),opacity:.25},{transform:'none',opacity:1}],wk?{duration:520,easing:'cubic-bezier(.3,1.25,.5,1)'}:{duration:420,easing:'cubic-bezier(.2,.85,.25,1)'});
+  a.onfinish=a.oncancel=()=>{pf.getAnimations().forEach(x=>x.cancel());pf.classList.remove('on');pf.style.zIndex='';pt.style.zIndex='';mp.style.transformOrigin='';if(wk)jelly(mp,0,1.5);setTimeout(()=>{if(!wk)dmReveal(mp);setTimeout(()=>flyOff(),wk?600:1200);setTimeout(()=>{S.flip=0},700)},wk?420:40)};
  }else{ // 1) the map's content leaves  2) the empty panel shrinks into the route panel  3) the dashboard panels arrive one after another
   const mp=pfP,tr=tgt.getBoundingClientRect();mp.style.transformOrigin='0 0';
   [...mp.children].forEach(c=>c.animate&&c.animate([{opacity:1},{opacity:0}],{duration:170,fill:'forwards'}));
